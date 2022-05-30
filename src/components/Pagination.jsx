@@ -39,6 +39,7 @@ const Div = styled.div`
   align-items: center;
   justify-content: end;
   gap: 12px;
+  margin-bottom: 64px;
 `;
 
 const Button = styled.div`

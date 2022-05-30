@@ -7,10 +7,13 @@ import Container from "../components/main/Container";
 import Pagination from "../components/Pagination";
 import { AiFillStar } from "react-icons/ai";
 import { MdSaveAlt } from "react-icons/md";
+import ModalCollect from "../components/ModalCollect";
 
 function AnimeList() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+  const [showModal, setShowModal] = useState(false);
+  const [idAnimeCollect, setIdAnimeCollect] = useState(0);
   const { pageNumber } = useParams();
   const navigate = useNavigate();
 
@@ -30,8 +33,9 @@ function AnimeList() {
     navigate("/anime/" + id + "/detail");
   };
 
-  const handleCollect = () => {
-    console.log("collection");
+  const handleCollect = (id) => {
+    setShowModal(!showModal);
+    setIdAnimeCollect(id);
   };
 
   if (loading)
@@ -39,9 +43,9 @@ function AnimeList() {
       <Container>
         <Flex>
           <Grid>
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(() => {
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((number, index) => {
               return (
-                <Card>
+                <Card key={index}>
                   <SkeletonImg />
                 </Card>
               );
@@ -61,42 +65,50 @@ function AnimeList() {
     );
 
   return (
-    <Container>
-      <Flex>
-        <Grid>
-          {data?.Page?.media?.map((anime) => {
-            return (
-              <Card key={anime.id}>
-                <Img
-                  src={anime.coverImage.large}
-                  alt={anime.title.english}
-                  onClick={() => handleAnimeDetail(anime.id)}
-                />
-                <Title onClick={() => handleAnimeDetail(anime.id)}>
-                  {anime.title.english ?? "English name not found"} -{" "}
-                  {anime.title.native ?? "Native name not found"}
-                </Title>
-                <Score>
-                  <AiFillStar />
-                  {anime.averageScore} / 100
-                </Score>
-                <Episodes>{anime.episodes} Episodes</Episodes>
-                <Collect onClick={handleCollect}>
-                  <MdSaveAlt />
-                </Collect>
-              </Card>
-            );
-          })}
-        </Grid>
-        <Pagination pageInfo={data?.Page?.pageInfo} />
-      </Flex>
-    </Container>
+    <>
+      <ModalCollect
+        showModal={showModal}
+        handleCollect={handleCollect}
+        idAnime={idAnimeCollect}
+      />
+      <Container>
+        <Flex>
+          <Grid>
+            {data?.Page?.media?.map((anime) => {
+              return (
+                <Card key={anime.id}>
+                  <Img
+                    src={anime.coverImage.large}
+                    alt={anime.title.english}
+                    onClick={() => handleAnimeDetail(anime.id)}
+                  />
+                  <Title onClick={() => handleAnimeDetail(anime.id)}>
+                    {anime.title.english ?? "English name not found"} -{" "}
+                    {anime.title.native ?? "Native name not found"}
+                  </Title>
+                  <Score>
+                    <AiFillStar />
+                    {anime.averageScore} / 100
+                  </Score>
+                  <Episodes>{anime.episodes} Episodes</Episodes>
+                  <Collect onClick={() => handleCollect(anime.id)}>
+                    <MdSaveAlt />
+                  </Collect>
+                </Card>
+              );
+            })}
+          </Grid>
+          <Pagination pageInfo={data?.Page?.pageInfo} />
+        </Flex>
+      </Container>
+    </>
   );
 }
 
 export default AnimeList;
 
 const Flex = styled.div`
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -109,7 +121,6 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
-  min-height: 100vh;
   width: 100%;
 `;
 
