@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { useParams } from "react-router-dom";
 import Container from "../components/main/Container";
 import styled from "@emotion/styled";
 import { AiFillStar } from "react-icons/ai";
+import ModalCollect from "../components/ModalCollect";
 
 export const getAnime = gql`
   query Query($id: Int) {
@@ -27,74 +28,123 @@ export const getAnime = gql`
 `;
 
 function AnimeDetail() {
+  const [collections, setCollections] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [idAnimeCollect, setIdAnimeCollect] = useState(0);
+  const [animesCollected, setAnimesCollected] = useState([]);
+  const [isCollected, setIsCollected] = useState(false);
+  const [collectionName, setCollectionName] = useState(" ");
+
   const { id } = useParams();
   const { loading, error, data } = useQuery(getAnime, {
     variables: { id: id },
   });
 
-  console.log(data?.Media);
+  const handleAnimesCollected = (animes) => {
+    setAnimesCollected(animes);
+  };
+
+  const handleCollect = (id) => {
+    setShowModal(!showModal);
+    setIdAnimeCollect(id);
+  };
+
+  const handleRemove = () => {
+    if (window.confirm("Remove from collection")) {
+      const localCollections = JSON.parse(localStorage.getItem("collections"));
+      // console.log(localCollections);
+
+      const anime = localCollections.map((collection) => {
+        // console.log(collection);
+        // anime = [];
+        collection.anime = collection.anime.map((id) => {
+          if (id !== data?.Media?.id) {
+            return id;
+          } else {
+            return 0;
+          }
+        });
+        return collection;
+      });
+
+      setIsCollected(false);
+      localStorage.setItem("collections", JSON.stringify(anime));
+    }
+  };
+
+  useEffect(() => {
+    animesCollected.forEach((anime) => {
+      if (anime.id === data?.Media?.id) {
+        setIsCollected(true);
+        setCollectionName(anime.name);
+      }
+    });
+  });
+
+  // useEffect(() => {
+  //   const localCollections = JSON.parse(localStorage.getItem("collections"));
+  //   if (localCollections) {
+  //     setCollections(localCollections);
+  //   }
+  // }, []);
 
   if (loading) return <> Loading</>;
   if (error) return <>{JSON.stringify(error)}</>;
 
   return (
-    <Container>
-      <Detail>
-        <BannerImage
-          src={data?.Media?.bannerImage}
-          alt={data?.Media?.title.english}
-        />
-        <Grid>
-          <Left>
-            <CoverImage
-              src={data?.Media?.coverImage.large}
-              alt={data?.Media?.title.english}
-            />
-            <Collect>Add to Collect</Collect>
-          </Left>
-          <Right>
-            <Title>
-              {data?.Media?.title.english} - {data?.Media?.title.native}
-            </Title>
-            <Info>
-              <Rating>
-                <AiFillStar />
-                {data?.Media?.averageScore} / 100
-              </Rating>
-              <Episodes>{data?.Media?.episodes} Episodes</Episodes>
-            </Info>
-            <Paragraph>{data?.Media?.description}</Paragraph>
-            <Genre>
-              Genres:{" "}
-              {data?.Media?.genres?.map((genre) => {
-                return <span>{genre}, </span>;
-              })}
-            </Genre>
-          </Right>
-        </Grid>
-        {/* <img
-        src={data?.Media?.bannerImage}
-        alt={data?.Media?.title.english}
-        width={300}
+    <>
+      <ModalCollect
+        showModal={showModal}
+        handleCollect={handleCollect}
+        idAnime={idAnimeCollect}
+        animesCollected={handleAnimesCollected}
       />
-      <h1>
-        {data?.Media?.title.english} - {data?.Media?.title.native}
-        </h1>
-        <img
-        src={data?.Media?.coverImage.medium}
-        alt={data?.Media?.title.english}
-        />
-        <p>
-        Genres:{" "}
-        {data?.Media?.genres?.map((genre) => {
-          return <span>{genre}, </span>;
-        })}
-        </p>
-        <p>Total episodes: {data?.Media?.episodes}</p>
-        <p>Duration: {data?.Media?.duration}</p>
-      <p>Description: {data?.Media?.description}</p> */}
-      </Detail>
-    </Container>
+      <Container>
+        <Detail>
+          <BannerImage
+            src={data?.Media?.bannerImage}
+            alt={data?.Media?.title.english}
+          />
+          <Grid>
+            <Left>
+              <CoverImage
+                src={data?.Media?.coverImage.large}
+                alt={data?.Media?.title.english}
+              />
+              {!isCollected ? (
+                <Collect onClick={() => handleCollect(data?.Media?.id)}>
+                  Add to Collection
+                </Collect>
+              ) : (
+                <Collected onClick={handleRemove}>
+                  Remove from Collection
+                </Collected>
+              )}
+            </Left>
+            <Right>
+              <Title>
+                {data?.Media?.title.english} - {data?.Media?.title.native}
+              </Title>
+              {isCollected && <h3>Collected in {collectionName}</h3>}
+              <Info>
+                <Rating>
+                  <AiFillStar />
+                  {data?.Media?.averageScore} / 100
+                </Rating>
+                <Episodes>{data?.Media?.episodes} Episodes</Episodes>
+              </Info>
+              <Paragraph>{data?.Media?.description}</Paragraph>
+              <Genre>
+                Genres:{" "}
+                {data?.Media?.genres?.map((genre, index) => {
+                  return <span key={index}>{genre}, </span>;
+                })}
+              </Genre>
+            </Right>
+          </Grid>
+        </Detail>
+      </Container>
+    </>
   );
 }
 
@@ -200,6 +250,17 @@ const Collect = styled.div`
   &:hover {
     background-color: ${({ theme }) => theme.color.green};
     color: ${({ theme }) => theme.color.light};
+  }
+`;
+
+const Collected = styled(Collect)`
+  z-index: 5;
+  background-color: ${({ theme }) => theme.color.lightAlt};
+  color: ${({ theme }) => theme.color.light};
+  border: 2px solid ${({ theme }) => theme.color.lightAlt};
+  &:hover {
+    background-color: ${({ theme }) => theme.color.darkAlt};
+    border: 2px solid ${({ theme }) => theme.color.darkAlt};
   }
 `;
 

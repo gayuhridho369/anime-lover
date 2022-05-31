@@ -7,6 +7,7 @@ import Container from "../components/main/Container";
 import Pagination from "../components/Pagination";
 import { AiFillStar } from "react-icons/ai";
 import { MdSaveAlt } from "react-icons/md";
+import { BsTagsFill } from "react-icons/bs";
 import ModalCollect from "../components/ModalCollect";
 
 function AnimeList() {
@@ -14,6 +15,7 @@ function AnimeList() {
   const [perPage, setPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false);
   const [idAnimeCollect, setIdAnimeCollect] = useState(0);
+  const [animesCollected, setAnimesCollected] = useState([]);
   const { pageNumber } = useParams();
   const navigate = useNavigate();
 
@@ -31,6 +33,10 @@ function AnimeList() {
 
   const handleAnimeDetail = (id) => {
     navigate("/anime/" + id + "/detail");
+  };
+
+  const handleAnimesCollected = (animes) => {
+    setAnimesCollected(animes);
   };
 
   const handleCollect = (id) => {
@@ -70,13 +76,14 @@ function AnimeList() {
         showModal={showModal}
         handleCollect={handleCollect}
         idAnime={idAnimeCollect}
+        animesCollected={handleAnimesCollected}
       />
       <Container>
         <Flex>
           <Grid>
-            {data?.Page?.media?.map((anime) => {
+            {data?.Page?.media?.map((anime, index) => {
               return (
-                <Card key={anime.id}>
+                <Card key={index}>
                   <Img
                     src={anime.coverImage.large}
                     alt={anime.title.english}
@@ -91,6 +98,17 @@ function AnimeList() {
                     {anime.averageScore} / 100
                   </Score>
                   <Episodes>{anime.episodes} Episodes</Episodes>
+                  {animesCollected.map((animeCollected, index) => {
+                    return (
+                      <div key={index}>
+                        {animeCollected.id === anime.id && (
+                          <Collected>
+                            <BsTagsFill />
+                          </Collected>
+                        )}
+                      </div>
+                    );
+                  })}
                   <Collect onClick={() => handleCollect(anime.id)}>
                     <MdSaveAlt />
                   </Collect>
@@ -201,6 +219,13 @@ const Collect = styled.div`
     background-color: ${({ theme }) => theme.color.green};
     color: ${({ theme }) => theme.color.white};
   }
+`;
+
+const Collected = styled(Collect)`
+  z-index: 5;
+  background-color: ${({ theme }) => theme.color.green};
+  color: ${({ theme }) => theme.color.light};
+  border: 2px solid ${({ theme }) => theme.color.green};
 `;
 
 const SkeletonImg = styled.div`

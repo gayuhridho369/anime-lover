@@ -10,7 +10,7 @@ function Pagination(props) {
   };
 
   const handlePrev = () => {
-    navigate("/anime/page/" + (Number(props.pageInfo.currentPage) + Number(1)));
+    navigate("/anime/page/" + (Number(props.pageInfo.currentPage) - Number(1)));
   };
 
   return (

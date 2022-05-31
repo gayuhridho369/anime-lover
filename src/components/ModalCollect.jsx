@@ -26,6 +26,7 @@ function ModalCollect(props) {
     let data = [];
 
     if (collectionIndex >= 0) {
+      data = [];
       data = collections.map((collection, index) => {
         if (index == collectionIndex) {
           collection.anime.push(props.idAnime);
@@ -34,19 +35,37 @@ function ModalCollect(props) {
       });
 
       setCollections(data);
+      localStorage.setItem("collections", JSON.stringify(data));
+      resetModal();
     } else {
       data = [];
+      let isUnique = true;
       data = collections.map((collection) => {
+        if (collection.name === newCollectionName) isUnique = false;
         return collection;
       });
 
-      data.push({
-        name: newCollectionName,
-        anime: props.idAnime,
-      });
+      if (isUnique && newCollection !== " ") {
+        data.push({
+          name: newCollectionName,
+          anime: [props.idAnime],
+        });
 
-      setCollections(data);
+        setCollections(data);
+        localStorage.setItem("collections", JSON.stringify(data));
+        resetModal();
+      } else {
+        alert("Error");
+      }
     }
+  };
+
+  const resetModal = () => {
+    setCollectionIndex(-1);
+    setNewCollection(true);
+    setNewCollectionName("");
+
+    props.handleCollect();
   };
 
   const hanldeCollectionOption = (e) => {
@@ -56,17 +75,32 @@ function ModalCollect(props) {
     } else {
       setNewCollection(false);
     }
-    // console.log(e.target.value);
+  };
+
+  const animesCollected = () => {
+    let animes = [];
+    collections.forEach((collection) => {
+      collection.anime.forEach((id) => {
+        animes.push({
+          id: id,
+          name: collection.name,
+        });
+      });
+    });
+    props.animesCollected(animes);
+    // console.log(animes);
   };
 
   useEffect(() => {
-    console.log(collectionIndex);
+    const localCollections = JSON.parse(localStorage.getItem("collections"));
+    if (localCollections) {
+      setCollections(localCollections);
+    }
+  }, []);
 
-    console.log(collections);
-    // collections.map((collection, index) => {
-    //   console.log(index, collection);
-    // });
-  }, [collections, collectionIndex]);
+  useEffect(() => {
+    animesCollected();
+  }, [collections]);
 
   return (
     <>
