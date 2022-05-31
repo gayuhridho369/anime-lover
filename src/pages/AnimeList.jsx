@@ -1,27 +1,45 @@
 import React, { useEffect, useState } from "react";
-import styled from "@emotion/styled";
 import { useNavigate, useParams } from "react-router-dom";
+import styled from "@emotion/styled";
 import { useQuery } from "@apollo/client";
-import GetAnimes from "../graphql/GetAnimes";
-import Container from "../components/main/Container";
+import GetAnimeList from "../graphql/GetAnimeList";
+import Container from "../components/Container";
 import Pagination from "../components/Pagination";
 import { AiFillStar } from "react-icons/ai";
 import { MdSaveAlt } from "react-icons/md";
 import { BsTagsFill } from "react-icons/bs";
-import ModalCollect from "../components/ModalCollect";
+import {
+  SkeletonCard,
+  SkeletonPaginate,
+} from "../components/skeletons/SkeletonAnimeList";
+import Error from "../components/Error";
+import AddCollect from "../components/modals/AddCollect";
 
 function AnimeList() {
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false);
-  const [idAnimeCollect, setIdAnimeCollect] = useState(0);
+  const [idAddCollect, setIdAddCollect] = useState(0);
   const [animesCollected, setAnimesCollected] = useState([]);
+
   const { pageNumber } = useParams();
   const navigate = useNavigate();
 
-  const { loading, error, data } = useQuery(GetAnimes, {
-    variables: { page: page, perPage: perPage },
+  const { loading, error, data } = useQuery(GetAnimeList, {
+    variables: { page: page, perPage: 10 },
   });
+
+  const handleAnimeDetail = (id) => {
+    navigate("/anime/" + id + "/detail");
+  };
+
+  const handleAddCollect = (id) => {
+    setShowModal(!showModal);
+    setIdAddCollect(id);
+  };
+
+  const handleAnimesCollected = (animes) => {
+    setAnimesCollected(animes);
+  };
 
   useEffect(() => {
     if (pageNumber) {
@@ -29,20 +47,8 @@ function AnimeList() {
     } else {
       setPage(1);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
-
-  const handleAnimeDetail = (id) => {
-    navigate("/anime/" + id + "/detail");
-  };
-
-  const handleAnimesCollected = (animes) => {
-    setAnimesCollected(animes);
-  };
-
-  const handleCollect = (id) => {
-    setShowModal(!showModal);
-    setIdAnimeCollect(id);
-  };
 
   if (loading)
     return (
@@ -50,13 +56,10 @@ function AnimeList() {
         <Flex>
           <Grid>
             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((number, index) => {
-              return (
-                <Card key={index}>
-                  <SkeletonImg />
-                </Card>
-              );
+              return <SkeletonCard key={index} />;
             })}
           </Grid>
+          <SkeletonPaginate />
         </Flex>
       </Container>
     );
@@ -65,23 +68,25 @@ function AnimeList() {
     return (
       <Container>
         <Flex>
-          <Grid> {JSON.stringify(error)}</Grid>
+          <Grid>
+            <Error />
+          </Grid>
         </Flex>
       </Container>
     );
 
   return (
     <>
-      <ModalCollect
+      <AddCollect
         showModal={showModal}
-        handleCollect={handleCollect}
-        idAnime={idAnimeCollect}
+        idAddCollect={idAddCollect}
+        handleAddCollect={handleAddCollect}
         animesCollected={handleAnimesCollected}
       />
       <Container>
         <Flex>
           <Grid>
-            {data?.Page?.media?.map((anime, index) => {
+            {data.Page.media.map((anime, index) => {
               return (
                 <Card key={index}>
                   <Img
@@ -90,13 +95,12 @@ function AnimeList() {
                     onClick={() => handleAnimeDetail(anime.id)}
                   />
                   <Title onClick={() => handleAnimeDetail(anime.id)}>
-                    {anime.title.english ?? "English name not found"} -{" "}
-                    {anime.title.native ?? "Native name not found"}
+                    {anime.title.english} - {anime.title.native}
                   </Title>
-                  <Score>
+                  <Rating>
                     <AiFillStar />
                     {anime.averageScore} / 100
-                  </Score>
+                  </Rating>
                   <Episodes>{anime.episodes} Episodes</Episodes>
                   {animesCollected.map((animeCollected, index) => {
                     return (
@@ -109,14 +113,14 @@ function AnimeList() {
                       </div>
                     );
                   })}
-                  <Collect onClick={() => handleCollect(anime.id)}>
+                  <Collect onClick={() => handleAddCollect(anime.id)}>
                     <MdSaveAlt />
                   </Collect>
                 </Card>
               );
             })}
           </Grid>
-          <Pagination pageInfo={data?.Page?.pageInfo} />
+          <Pagination pageInfo={data.Page.pageInfo} />
         </Flex>
       </Container>
     </>
@@ -132,7 +136,7 @@ const Flex = styled.div`
   align-items: center;
   justify-content: center;
   gap: 40px;
-  padding: 96px 0;
+  padding: 96px 0 64px 0;
 `;
 
 const Grid = styled.div`
@@ -143,7 +147,6 @@ const Grid = styled.div`
 `;
 
 const Card = styled.div`
-  cursor: pointer;
   position: relative;
   height: 400px;
   width: 100%;
@@ -162,14 +165,18 @@ const Img = styled.img`
   object-fit: cover;
   border-top-right-radius: 8px;
   border-top-left-radius: 8px;
+  cursor: pointer;
 `;
 
 const Title = styled.p`
   font-size: 12px;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: ${({ theme }) => theme.color.darkAlt};
+  font-weight: 700;
   padding: 4px 10px;
+  color: ${({ theme }) => theme.color.darkAlt};
+  cursor: pointer;
+  &:hover {
+    color: ${({ theme }) => theme.color.green};
+  }
 `;
 
 const Episodes = styled.p`
@@ -183,12 +190,12 @@ const Episodes = styled.p`
   font-size: 12px;
   font-weight: 600;
   border-radius: 4px;
-  background-color: ${({ theme }) => theme.color.green};
-  color: ${({ theme }) => theme.color.white};
   padding: 2px 6px;
+  background-color: ${({ theme }) => theme.color.green};
+  color: ${({ theme }) => theme.color.light};
 `;
 
-const Score = styled.p`
+const Rating = styled.p`
   position: absolute;
   display: flex;
   align-items: center;
@@ -199,22 +206,23 @@ const Score = styled.p`
   font-size: 12px;
   font-weight: 600;
   border-radius: 4px;
-  background-color: orange;
   padding: 2px 6px;
+  background-color: ${({ theme }) => theme.color.orange};
 `;
 
 const Collect = styled.div`
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  color: ${({ theme }) => theme.color.green};
-  font-size: 18px;
-  border: 2px solid ${({ theme }) => theme.color.green};
-  border-radius: 4px;
-  padding: 2px 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  bottom: 10px;
+  left: 10px;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 18px;
+  border: 2px solid ${({ theme }) => theme.color.green};
+  color: ${({ theme }) => theme.color.green};
+  cursor: pointer;
   &:hover {
     background-color: ${({ theme }) => theme.color.green};
     color: ${({ theme }) => theme.color.white};
@@ -223,15 +231,13 @@ const Collect = styled.div`
 
 const Collected = styled(Collect)`
   z-index: 5;
-  background-color: ${({ theme }) => theme.color.green};
   color: ${({ theme }) => theme.color.light};
-  border: 2px solid ${({ theme }) => theme.color.green};
-`;
-
-const SkeletonImg = styled.div`
-  width: 100%;
-  height: 300px;
-  border-top-right-radius: 8px;
-  border-top-left-radius: 8px;
+  border: 2px solid ${({ theme }) => theme.color.lightAlt};
   background-color: ${({ theme }) => theme.color.lightAlt};
+  cursor: auto;
+  &:hover {
+    color: ${({ theme }) => theme.color.light};
+    border: 2px solid ${({ theme }) => theme.color.lightAlt};
+    background-color: ${({ theme }) => theme.color.lightAlt};
+  }
 `;

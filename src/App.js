@@ -1,23 +1,19 @@
 import React, { Fragment } from "react";
-import { Route, Routes } from "react-router-dom";
-import { GlobalStyles } from "./themes/GlobalStyles";
 import { ThemeProvider } from "@emotion/react";
-import { defaultTheme } from "./themes/ModeThemes";
+import { GlobalStyles } from "./themes/GlobalStyles";
+import { DefaultTheme } from "./themes/PresetThemes";
 import Navbar from "./components/Navbar";
-import AnimeDetail from "./pages/AnimeDetail";
-import AnimeList from "./pages/AnimeList";
+import Footer from "./components/Footer";
+import Router from "./routes/Router";
 
 function App() {
   return (
     <Fragment>
-      <ThemeProvider theme={defaultTheme}>
+      <ThemeProvider theme={DefaultTheme}>
         <GlobalStyles />
         <Navbar />
-        <Routes>
-          <Route path="/" element={<AnimeList />} />
-          <Route path="/anime/page/:pageNumber" element={<AnimeList />} />
-          <Route path="/anime/:id/detail" element={<AnimeDetail />} />
-        </Routes>
+        <Router />
+        <Footer />
       </ThemeProvider>
     </Fragment>
   );

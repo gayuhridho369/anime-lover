@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
-import Container from "./main/Container";
+import Container from "./Container";
 import { ImSearch } from "react-icons/im";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -63,6 +63,9 @@ const Div = styled.div`
 
 const Search = styled.div`
   position: relative;
+  @media only screen and (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const Input = styled.input`

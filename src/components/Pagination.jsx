@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Pagination(props) {
   const navigate = useNavigate();
@@ -39,7 +39,6 @@ const Div = styled.div`
   align-items: center;
   justify-content: end;
   gap: 12px;
-  margin-bottom: 64px;
 `;
 
 const Button = styled.div`

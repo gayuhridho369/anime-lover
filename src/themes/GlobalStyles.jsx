@@ -11,8 +11,9 @@ export const GlobalStyles = () => {
         }
 
         body {
-          font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
-            sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+            "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+            "Helvetica Neue", sans-serif;
           background-color: #fafafa;
           color: #212121;
         }

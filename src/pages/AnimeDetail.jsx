@@ -1,34 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useQuery, gql } from "@apollo/client";
-import { useParams } from "react-router-dom";
-import Container from "../components/main/Container";
+import { Link, useParams } from "react-router-dom";
 import styled from "@emotion/styled";
+import { useQuery, gql } from "@apollo/client";
+import Container from "../components/Container";
 import { AiFillStar } from "react-icons/ai";
 import ModalCollect from "../components/ModalCollect";
-
-export const getAnime = gql`
-  query Query($id: Int) {
-    Media(id: $id, type: ANIME) {
-      id
-      title {
-        english
-        native
-      }
-      coverImage {
-        large
-      }
-      bannerImage
-      averageScore
-      genres
-      episodes
-      duration
-      description
-    }
-  }
-`;
+import getAnimeDetail from "../graphql/GetAnimeDetail";
+import SkeletonAnimeDetail from "../components/skeletons/SkeletonAnimeDetail";
 
 function AnimeDetail() {
-  const [collections, setCollections] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [idAnimeCollect, setIdAnimeCollect] = useState(0);
   const [animesCollected, setAnimesCollected] = useState([]);
@@ -36,7 +16,7 @@ function AnimeDetail() {
   const [collectionName, setCollectionName] = useState(" ");
 
   const { id } = useParams();
-  const { loading, error, data } = useQuery(getAnime, {
+  const { loading, error, data } = useQuery(getAnimeDetail, {
     variables: { id: id },
   });
 
@@ -45,6 +25,7 @@ function AnimeDetail() {
   };
 
   const handleCollect = (id) => {
+    console.log(id);
     setShowModal(!showModal);
     setIdAnimeCollect(id);
   };
@@ -52,27 +33,39 @@ function AnimeDetail() {
   const handleRemove = () => {
     if (window.confirm("Remove from collection")) {
       const localCollections = JSON.parse(localStorage.getItem("collections"));
-      // console.log(localCollections);
 
       const anime = localCollections.map((collection) => {
-        // console.log(collection);
-        // anime = [];
-        collection.anime = collection.anime.map((id) => {
-          if (id !== data?.Media?.id) {
-            return id;
-          } else {
-            return 0;
+        if (collection.anime.find((id) => id === data.Media.id)) {
+          const index = collection.anime.indexOf(data.Media.id);
+          if (index > -1) {
+            collection.anime.splice(index, 1);
           }
-        });
+        }
+
         return collection;
       });
 
-      setIsCollected(false);
+      // setIsCollected(false);
       localStorage.setItem("collections", JSON.stringify(anime));
+
+      let datas = [];
+      anime.forEach((collection) => {
+        collection.anime.forEach((id) => {
+          datas.push({
+            id: id,
+            name: collection.name,
+          });
+        });
+      });
+
+      setAnimesCollected(datas);
     }
   };
 
   useEffect(() => {
+    setIsCollected(false);
+    setCollectionName("");
+
     animesCollected.forEach((anime) => {
       if (anime.id === data?.Media?.id) {
         setIsCollected(true);
@@ -88,7 +81,12 @@ function AnimeDetail() {
   //   }
   // }, []);
 
-  if (loading) return <> Loading</>;
+  if (loading)
+    return (
+      <Container>
+        <SkeletonAnimeDetail />
+      </Container>
+    );
   if (error) return <>{JSON.stringify(error)}</>;
 
   return (
@@ -120,12 +118,17 @@ function AnimeDetail() {
                   Remove from Collection
                 </Collected>
               )}
+              {isCollected && (
+                <Collection>
+                  Collected In
+                  <CollectionName> {collectionName} </CollectionName>
+                </Collection>
+              )}
             </Left>
             <Right>
               <Title>
                 {data?.Media?.title.english} - {data?.Media?.title.native}
               </Title>
-              {isCollected && <h3>Collected in {collectionName}</h3>}
               <Info>
                 <Rating>
                   <AiFillStar />
@@ -163,20 +166,26 @@ const BannerImage = styled.img`
 `;
 
 const CoverImage = styled.img`
-  height: 300px;
   width: 200px;
+  height: 300px;
   object-fit: cover;
   margin-top: -150px;
-  /* margin-left: 50px; */
   border: 6px solid ${({ theme }) => theme.color.white};
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px,
     rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+  @media only screen and (max-width: 768px) {
+    margin-top: -100px;
+    width: 150px;
+    height: 200px;
+  }
 `;
 
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 3.5fr;
-  height: 300px;
+  @media only screen and (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Left = styled.div`
@@ -184,8 +193,15 @@ const Left = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
 `;
-const Right = styled.div``;
+
+const Right = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+`;
 
 const Title = styled.h1`
   font-size: 32px;
@@ -251,6 +267,9 @@ const Collect = styled.div`
     background-color: ${({ theme }) => theme.color.green};
     color: ${({ theme }) => theme.color.light};
   }
+  @media only screen and (max-width: 768px) {
+    width: 150px;
+  }
 `;
 
 const Collected = styled(Collect)`
@@ -274,4 +293,18 @@ const Genre = styled.div`
     color: ${({ theme }) => theme.color.dark};
     font-weight: 600;
   }
+`;
+
+const Collection = styled.p`
+  margin-top: 18px;
+  color: ${({ theme }) => theme.color.lightAlt};
+  display: block;
+`;
+
+const CollectionName = styled.span`
+  display: block;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  color: ${({ theme }) => theme.color.green};
 `;

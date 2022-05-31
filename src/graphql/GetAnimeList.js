@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-export const GetAnimes = gql`
+const GetAnimeList = gql`
   query Query($page: Int, $perPage: Int) {
     Page(page: $page, perPage: $perPage) {
       pageInfo {
@@ -24,4 +24,4 @@ export const GetAnimes = gql`
   }
 `;
 
-export default GetAnimes;
+export default GetAnimeList;
