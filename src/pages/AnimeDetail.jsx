@@ -18,7 +18,8 @@ function AnimeDetail() {
   const [isCollected, setIsCollected] = useState(false);
   const [collectionName, setCollectionName] = useState(" ");
 
-  const { collections, addCollect, removeCollect } = useContext(Collections);
+  const { collections, addCollect, getLocalStorage, removeCollect } =
+    useContext(Collections);
 
   const { id } = useParams();
   const { loading, error, data } = useQuery(getAnimeDetail, {
@@ -45,9 +46,9 @@ function AnimeDetail() {
     toast.success("Successfully removed from collection");
   };
 
-  // useEffect(() => {
-  //   getLocalStorage();
-  // }, [collections]);
+  useEffect(() => {
+    getLocalStorage();
+  });
 
   useEffect(() => {
     setIsCollected(false);

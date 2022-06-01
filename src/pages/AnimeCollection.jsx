@@ -71,13 +71,13 @@ function AnimeCollection() {
 
   useEffect(() => {
     getLocalStorage();
-  }, []);
+  });
 
   useEffect(() => {
     if (!filterActive) {
       setCollectionFilter(collections[0]);
     }
-  });
+  }, [filterActive, collections]);
 
   return (
     <>
@@ -276,38 +276,6 @@ const Rating = styled.p`
   border-radius: 4px;
   padding: 2px 6px;
   background-color: ${({ theme }) => theme.color.orange};
-`;
-
-const Collect = styled.div`
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  bottom: 15px;
-  left: 10px;
-  border-radius: 4px;
-  padding: 2px 4px;
-  font-size: 18px;
-  border: 2px solid ${({ theme }) => theme.color.green};
-  color: ${({ theme }) => theme.color.green};
-  cursor: pointer;
-  &:hover {
-    background-color: ${({ theme }) => theme.color.green};
-    color: ${({ theme }) => theme.color.white};
-  }
-`;
-
-const Collected = styled(Collect)`
-  z-index: 5;
-  color: ${({ theme }) => theme.color.light};
-  border: 2px solid ${({ theme }) => theme.color.lightAlt};
-  background-color: ${({ theme }) => theme.color.lightAlt};
-  cursor: auto;
-  &:hover {
-    color: ${({ theme }) => theme.color.light};
-    border: 2px solid ${({ theme }) => theme.color.lightAlt};
-    background-color: ${({ theme }) => theme.color.lightAlt};
-  }
 `;
 
 const Utils = styled.div`

@@ -82,11 +82,11 @@ function AnimeList() {
 
   useEffect(() => {
     getLocalStorage();
-  }, []);
+  });
 
   useEffect(() => {
     isAnimesCollected();
-  }, [collections]);
+  });
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });

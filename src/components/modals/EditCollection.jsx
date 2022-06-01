@@ -57,7 +57,7 @@ function EditCollection(props) {
 
   useEffect(() => {
     setOldCollectionName(props.oldCollectionName);
-  });
+  }, [props.oldCollectionName]);
 
   return (
     <>
