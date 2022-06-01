@@ -22,6 +22,9 @@ export const actions = {
   GET_LOCAL_STORAGE: "GET_LOCAL_STORAGE",
   ADD_COLLECT: "ADD_COLLECT",
   REMOVE_COLLECT: "REMOVE_COLLECT",
+  ADD_COLLECTION: "ADD_COLLECTION",
+  EDIT_COLLECTION: "EDIT_COLLECTION",
+  DELETE_COLLECTION: "DELETE_COLLECTION",
 };
 
 const setToLocalStorage = (collections) => {
@@ -78,6 +81,41 @@ export const reducer = (state, action) => {
       });
       setToLocalStorage(updateRemoveCollections);
       return { collections: updateRemoveCollections };
+
+    case actions.ADD_COLLECTION:
+      const updateAddCollection = [
+        ...state.collections,
+        {
+          id: new Date().getUTCMilliseconds(),
+          name: action.collectionName,
+          animesId: [],
+        },
+      ];
+
+      setToLocalStorage(updateAddCollection);
+      return { collections: updateAddCollection };
+
+    case actions.EDIT_COLLECTION:
+      const updateEditCollections = state.collections.map((collection) => {
+        if (Number(collection.id) === Number(action.newCollection.id)) {
+          collection.name = action.newCollection.name;
+        }
+        return collection;
+      });
+
+      setToLocalStorage(updateEditCollections);
+      return { collections: updateEditCollections };
+
+    case actions.DELETE_COLLECTION:
+      const updateDeleteCollection = [];
+      state.collections.forEach((collection) => {
+        if (collection.id !== Number(action.collectionId)) {
+          updateDeleteCollection.push(collection);
+        }
+      });
+
+      setToLocalStorage(updateDeleteCollection);
+      return { collections: updateDeleteCollection };
 
     default:
       return state;

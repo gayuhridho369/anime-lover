@@ -5,18 +5,29 @@ import { Collections } from "../stores/Context";
 import { useQuery } from "@apollo/client";
 import getAnimeDetail from "../graphql/GetAnimeDetail";
 import { AiFillStar } from "react-icons/ai";
-import { MdSaveAlt } from "react-icons/md";
-import { BsTagsFill } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
+import AddCollection from "../components/modals/AddCollection";
+import EditCollection from "../components/modals/EditCollection";
+import DeleteCollection from "../components/modals/DeleteCollection";
 
 function AnimeCollection() {
   const [filterActive, setFilterActive] = useState(false);
+  const [showModalAdd, setShowModalAdd] = useState(false);
+  const [showModalEdit, setShowModalEdit] = useState(false);
+  const [showModalDelete, setShowModalDelete] = useState(false);
+
   const [collectionFilter, setCollectionFilter] = useState({
     id: null,
     name: "",
     animesId: [],
   });
-  const { collections, getLocalStorage } = useContext(Collections);
+  const {
+    collections,
+    getLocalStorage,
+    addCollection,
+    editCollection,
+    deleteCollection,
+  } = useContext(Collections);
 
   const handleChangeFilter = (collection) => {
     setFilterActive(true);
@@ -27,42 +38,102 @@ function AnimeCollection() {
     });
   };
 
+  const handleModalAdd = () => {
+    setShowModalAdd(!showModalAdd);
+  };
+
+  const handleAddCollection = (collectionName) => {
+    addCollection(collectionName);
+  };
+
+  const handleModalEdit = () => {
+    setShowModalEdit(!showModalEdit);
+  };
+
+  const handleEditCollection = (collectionName) => {
+    editCollection({
+      id: collectionFilter.id,
+      name: collectionName,
+    });
+  };
+
+  const handleModalDelete = () => {
+    setShowModalDelete(!showModalDelete);
+  };
+
+  const handleDeleteCollection = () => {
+    deleteCollection(collectionFilter.id);
+  };
+
   useEffect(() => {
     getLocalStorage();
   }, []);
 
   useEffect(() => {
+    console.log(collectionFilter.animesId.length);
     if (!filterActive) {
       setCollectionFilter(collections[0]);
     }
   });
 
   return (
-    <Container>
-      <Collection>
-        <Filter>
-          {collections.map((collection) => {
-            return (
-              <FilterList
-                key={collection.id}
-                isActive={collection.id === collectionFilter.id}
-                onClick={() => handleChangeFilter(collection)}
-              >
-                {collection.name}
-              </FilterList>
-            );
-          })}
-        </Filter>
-        {/* <Utils>
-          <Title></Title>
-        </Utils> */}
-        <Grid>
-          {collectionFilter.animesId.map((id, index) => {
-            return <Card key={index} idAnime={id} />;
-          })}
-        </Grid>
-      </Collection>
-    </Container>
+    <>
+      <AddCollection
+        showModal={showModalAdd}
+        handleModal={handleModalAdd}
+        collections={collections}
+        handleAddCollection={handleAddCollection}
+      />
+      <EditCollection
+        showModal={showModalEdit}
+        handleModal={handleModalEdit}
+        oldCollectionName={collectionFilter.name}
+        collections={collections}
+        handleEditCollection={handleEditCollection}
+      />
+      <DeleteCollection
+        showModal={showModalDelete}
+        handleModal={handleModalDelete}
+        oldCollectionName={collectionFilter.name}
+        handleDeleteCollection={handleDeleteCollection}
+      />
+      <Container>
+        <Collection>
+          <Filter>
+            {collections.map((collection) => {
+              return (
+                <FilterList
+                  key={collection.id}
+                  isActive={collection.id === collectionFilter.id}
+                  onClick={() => handleChangeFilter(collection)}
+                >
+                  {collection.name}
+                </FilterList>
+              );
+            })}
+          </Filter>
+          <Utils>
+            <AddNew onClick={handleModalAdd}>Add New Collection</AddNew>
+            <Edit onClick={handleModalEdit}>Edit Collection</Edit>
+            <Delete onClick={handleModalDelete}>Delete Collection</Delete>
+          </Utils>
+          <Grid>
+            {collectionFilter.animesId.map((id, index) => {
+              return (
+                <>
+                  <Card key={index} idAnime={id} />
+                </>
+              );
+            })}
+            {collectionFilter.animesId.length < 5 && (
+              <>
+                <div></div> <div></div> <div></div> <div></div>
+              </>
+            )}
+          </Grid>
+        </Collection>
+      </Container>
+    </>
   );
 }
 
@@ -70,10 +141,6 @@ function Card(props) {
   const navigate = useNavigate();
   const { loading, error, data } = useQuery(getAnimeDetail, {
     variables: { id: props.idAnime },
-  });
-
-  useEffect(() => {
-    // console.log(data);
   });
 
   const handleToDetail = (id) => {
@@ -94,20 +161,6 @@ function Card(props) {
         {data?.Media?.averageScore} / 100
       </Rating>
       <Episodes>{data?.Media?.episodes} Episodes</Episodes>
-      {/* {animesCollected.map((animeCollected, index) => {
-        return (
-          <div key={index}>
-            {animeCollected.id === data?.Meida?.id && (
-              <Collected>
-                <BsTagsFill />
-              </Collected>
-            )}
-          </div>
-        );
-      })} */}
-      {/* <Collected>
-        <BsTagsFill />
-      </Collected> */}
     </Cards>
   );
 }
@@ -121,10 +174,17 @@ const Collection = styled.div`
 `;
 
 const Filter = styled.ul`
+  width: 100%;
+  overflow: scroll;
   display: flex;
   align-items: center;
   gap: 18px;
   margin-bottom: 18px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const FilterList = styled.li`
@@ -138,9 +198,16 @@ const FilterList = styled.li`
     props.isActive ? props.theme.color.light : props.theme.color.green};
 `;
 
+const AddNew = styled(FilterList)`
+  border: 2px solid ${({ theme }) => theme.color.lightAlt};
+  background-color: ${({ theme }) => theme.color.lightAlt};
+  color: ${({ theme }) => theme.color.dark};
+  font-weight: 600;
+`;
+
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 225px));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
   width: 100%;
 `;
@@ -242,3 +309,21 @@ const Collected = styled(Collect)`
     background-color: ${({ theme }) => theme.color.lightAlt};
   }
 `;
+
+const Utils = styled.div`
+  width: 100%;
+  overflow: scroll;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const Edit = styled(AddNew)``;
+
+const Delete = styled(AddNew)``;

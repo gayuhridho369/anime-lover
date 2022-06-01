@@ -17,6 +17,15 @@ export const ContextProvider = ({ children }) => {
     removeCollect: (idAnime) => {
       dispatch({ type: actions.REMOVE_COLLECT, idAnime });
     },
+    addCollection: (collectionName) => {
+      dispatch({ type: actions.ADD_COLLECTION, collectionName });
+    },
+    editCollection: (newCollection) => {
+      dispatch({ type: actions.EDIT_COLLECTION, newCollection });
+    },
+    deleteCollection: (collectionId) => {
+      dispatch({ type: actions.DELETE_COLLECTION, collectionId });
+    },
   };
 
   return <Collections.Provider value={value}>{children}</Collections.Provider>;

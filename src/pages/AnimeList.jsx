@@ -152,10 +152,10 @@ function AnimeList() {
                     return (
                       <div key={index}>
                         {animeCollected.id === anime.id && (
-                          <Collected>
-                            <BsTagsFill
-                              onClick={() => handleModalRemove(anime.id)}
-                            />
+                          <Collected
+                            onClick={() => handleModalRemove(anime.id)}
+                          >
+                            <BsTagsFill />
                           </Collected>
                         )}
                       </div>
@@ -284,7 +284,7 @@ const Collected = styled(Collect)`
   background-color: ${({ theme }) => theme.color.lightAlt};
   &:hover {
     color: ${({ theme }) => theme.color.light};
-    border: 2px solid ${({ theme }) => theme.color.lightAlt};
-    background-color: ${({ theme }) => theme.color.lightAlt};
+    border: 2px solid ${({ theme }) => theme.color.darkAlt};
+    background-color: ${({ theme }) => theme.color.darkAlt};
   }
 `;

@@ -1,29 +1,36 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 
-function AddCollect(props) {
-  const [collectionChoosed, setCollectionChoosed] = useState(0);
+function EditCollection(props) {
   const [newCollectionName, setNewCollectionName] = useState("");
-  const [newCollection, setNewCollection] = useState(true);
+  const [oldCollectionName, setOldCollectionName] = useState("");
   const [error, setError] = useState({
     status: false,
     message: "",
   });
 
-  const handleSaveNewCollect = (e) => {
-    let BreakError = false;
-    if (collectionChoosed < 1) {
-      if (
-        newCollectionName === "" ||
-        newCollectionName.replace(/^\s+|\s+$/g, "").length === 0
-      ) {
-        setError({
-          status: true,
-          message: "New Collection Name is required!",
-        });
+  const handleCancel = () => {
+    setError({
+      status: false,
+      message: "",
+    });
+    props.handleModal();
+    setNewCollectionName("");
+  };
 
-        BreakError = true;
-      }
+  const handleSave = () => {
+    let BreakError = false;
+
+    if (
+      newCollectionName === "" ||
+      newCollectionName.replace(/^\s+|\s+$/g, "").length === 0
+    ) {
+      setError({
+        status: true,
+        message: "New Collection Name is required!",
+      });
+
+      BreakError = true;
     }
 
     props.collections.forEach((collection) => {
@@ -37,18 +44,10 @@ function AddCollect(props) {
       }
     });
 
-    if (BreakError) {
-      return;
-    }
+    if (BreakError) return;
 
-    props.handleAddCollect({
-      idCollection: collectionChoosed,
-      newCollectionName: newCollectionName,
-      idAnime: props.idAddCollect,
-    });
+    props.handleEditCollection(newCollectionName);
     props.handleModal();
-    setCollectionChoosed(-1);
-    setNewCollection(true);
     setNewCollectionName("");
     setError({
       status: false,
@@ -56,63 +55,29 @@ function AddCollect(props) {
     });
   };
 
-  const handleCancel = () => {
-    props.handleModal();
-    setCollectionChoosed(-1);
-    setNewCollection(true);
-    setNewCollectionName("");
-    setError({
-      status: false,
-      message: "",
-    });
-  };
-
-  const hanldeCollectionOption = (e) => {
-    setCollectionChoosed(e.target.value);
-    if (Number(e.target.value) < 1) {
-      setNewCollection(true);
-    } else {
-      setNewCollection(false);
-    }
-  };
+  useEffect(() => {
+    setOldCollectionName(props.oldCollectionName);
+  });
 
   return (
     <>
       {props.showModal && (
         <Wrapper>
           <Card>
-            <Title>Add to Collection</Title>
+            <Title>Edit Collection</Title>
+            <Paragraph>Change the old name "{oldCollectionName}" to:</Paragraph>
             <Form>
               <Div>
-                <Label>My Collections</Label>
-                <Select
-                  value={collectionChoosed}
-                  onChange={(e) => hanldeCollectionOption(e)}
-                >
-                  <Option value={0}>New Collection</Option>
-                  {props.collections.map((collection) => {
-                    return (
-                      <Option value={collection.id} key={collection.id}>
-                        {collection.name}
-                      </Option>
-                    );
-                  })}
-                </Select>
+                <Label>New Collection Name</Label>
+                <Input
+                  value={newCollectionName}
+                  onChange={(e) => setNewCollectionName(e.target.value)}
+                />
+                <Error>{error.status && error.message}</Error>
               </Div>
-              {newCollection && (
-                <Div>
-                  <Label>New Collection Name</Label>
-                  <Input
-                    value={newCollectionName}
-                    onChange={(e) => setNewCollectionName(e.target.value)}
-                    required
-                  />
-                  <Error>{error.status && error.message}</Error>
-                </Div>
-              )}
               <Action>
                 <ButtonCancel onClick={handleCancel}>Cancel</ButtonCancel>
-                <ButtonSave onClick={handleSaveNewCollect}>Save</ButtonSave>
+                <ButtonSave onClick={handleSave}>Save</ButtonSave>
               </Action>
             </Form>
           </Card>
@@ -122,7 +87,7 @@ function AddCollect(props) {
   );
 }
 
-export default AddCollect;
+export default EditCollection;
 
 const Wrapper = styled.div`
   position: fixed;
@@ -150,6 +115,12 @@ const Title = styled.h3`
   color: ${({ theme }) => theme.color.green};
   margin-bottom: 18px;
   font-size: 24px;
+`;
+
+const Paragraph = styled.p`
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: ${({ theme }) => theme.color.lightAlt};
 `;
 
 const Form = styled.div`
@@ -185,21 +156,6 @@ const Error = styled.span`
   font-size: 14px;
   font-style: italic;
   color: red;
-`;
-
-const Select = styled.select`
-  height: 32px;
-  border-radius: 6px;
-  outline: none;
-  padding: 4px 4px;
-  font-size: 14px;
-  color: ${({ theme }) => theme.color.darkAlt};
-  border: 1px solid ${({ theme }) => theme.color.lightAlt};
-`;
-
-const Option = styled.option`
-  font-size: 14px;
-  padding: 4px 4px;
 `;
 
 const Action = styled.div`
