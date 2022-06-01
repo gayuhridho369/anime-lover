@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import AddCollection from "../components/modals/AddCollection";
 import EditCollection from "../components/modals/EditCollection";
 import DeleteCollection from "../components/modals/DeleteCollection";
+import toast, { Toaster } from "react-hot-toast";
 
 function AnimeCollection() {
   const [filterActive, setFilterActive] = useState(false);
@@ -44,6 +45,7 @@ function AnimeCollection() {
 
   const handleAddCollection = (collectionName) => {
     addCollection(collectionName);
+    toast.success("New collection has been added");
   };
 
   const handleModalEdit = () => {
@@ -55,6 +57,7 @@ function AnimeCollection() {
       id: collectionFilter.id,
       name: collectionName,
     });
+    toast.success("The collection has been renamed");
   };
 
   const handleModalDelete = () => {
@@ -63,6 +66,7 @@ function AnimeCollection() {
 
   const handleDeleteCollection = () => {
     deleteCollection(collectionFilter.id);
+    toast.success("The collection has been deleted");
   };
 
   useEffect(() => {
@@ -70,7 +74,6 @@ function AnimeCollection() {
   }, []);
 
   useEffect(() => {
-    console.log(collectionFilter.animesId.length);
     if (!filterActive) {
       setCollectionFilter(collections[0]);
     }
@@ -78,6 +81,7 @@ function AnimeCollection() {
 
   return (
     <>
+      <Toaster position="top-center" reverseOrder={false} />
       <AddCollection
         showModal={showModalAdd}
         handleModal={handleModalAdd}
@@ -119,11 +123,7 @@ function AnimeCollection() {
           </Utils>
           <Grid>
             {collectionFilter.animesId.map((id, index) => {
-              return (
-                <>
-                  <Card key={index} idAnime={id} />
-                </>
-              );
+              return <Card key={index} idAnime={id} />;
             })}
             {collectionFilter.animesId.length < 5 && (
               <>
@@ -139,7 +139,7 @@ function AnimeCollection() {
 
 function Card(props) {
   const navigate = useNavigate();
-  const { loading, error, data } = useQuery(getAnimeDetail, {
+  const { data } = useQuery(getAnimeDetail, {
     variables: { id: props.idAnime },
   });
 

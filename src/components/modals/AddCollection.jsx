@@ -48,6 +48,10 @@ function AddCollection(props) {
     props.handleAddCollection(newCollectionName);
     props.handleModal();
     setNewCollectionName("");
+    setError({
+      status: false,
+      message: "",
+    });
   };
 
   return (

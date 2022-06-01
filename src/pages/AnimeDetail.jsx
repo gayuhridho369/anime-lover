@@ -7,7 +7,7 @@ import { AiFillStar } from "react-icons/ai";
 import getAnimeDetail from "../graphql/GetAnimeDetail";
 import SkeletonAnimeDetail from "../components/skeletons/SkeletonAnimeDetail";
 import { Collections } from "../stores/Context";
-
+import toast, { Toaster } from "react-hot-toast";
 import AddCollect from "../components/modals/AddCollect";
 import RemoveCollect from "../components/modals/RemoveCollect";
 
@@ -26,38 +26,6 @@ function AnimeDetail() {
     variables: { id: id },
   });
 
-  // const handleRemove = () => {
-  //   if (window.confirm("Remove from collection")) {
-  //     const localCollections = JSON.parse(localStorage.getItem("collections"));
-
-  //     const anime = localCollections.map((collection) => {
-  //       if (collection.anime.find((id) => id === data.Media.id)) {
-  //         const index = collection.anime.indexOf(data.Media.id);
-  //         if (index > -1) {
-  //           collection.anime.splice(index, 1);
-  //         }
-  //       }
-
-  //       return collection;
-  //     });
-
-  //     // setIsCollected(false);
-  //     localStorage.setItem("collections", JSON.stringify(anime));
-
-  //     let datas = [];
-  //     anime.forEach((collection) => {
-  //       collection.anime.forEach((id) => {
-  //         datas.push({
-  //           id: id,
-  //           name: collection.name,
-  //         });
-  //       });
-  //     });
-
-  //     setAnimesCollected(datas);
-  //   }
-  // };
-
   const handleModalAdd = (id) => {
     setShowModalAdd(!showModalAdd);
     if (id) setIdAddCollect(id);
@@ -70,10 +38,12 @@ function AnimeDetail() {
 
   const handleAddCollect = (newCollect) => {
     addCollect(newCollect);
+    toast.success("Successfully added to collection");
   };
 
   const handleRemoveCollect = (id) => {
     removeCollect(id.idAnime);
+    toast.success("Successfully removed from collection");
   };
 
   useEffect(() => {
@@ -103,6 +73,7 @@ function AnimeDetail() {
 
   return (
     <>
+      <Toaster position="top-center" reverseOrder={false} />
       <AddCollect
         showModal={showModalAdd}
         handleModal={handleModalAdd}

@@ -16,6 +16,7 @@ import Error from "../components/Error";
 import AddCollect from "../components/modals/AddCollect";
 import { Collections } from "../stores/Context";
 import RemoveCollect from "../components/modals/RemoveCollect";
+import toast, { Toaster } from "react-hot-toast";
 
 function AnimeList() {
   const [page, setPage] = useState(1);
@@ -50,10 +51,12 @@ function AnimeList() {
 
   const handleAddCollect = (newCollect) => {
     addCollect(newCollect);
+    toast.success("Successfully added to collection");
   };
 
   const handleRemoveCollect = (id) => {
     removeCollect(id.idAnime);
+    toast.success("Successfully removed from collection");
   };
 
   const isAnimesCollected = () => {
@@ -116,6 +119,7 @@ function AnimeList() {
 
   return (
     <>
+      <Toaster position="top-center" reverseOrder={false} />
       <AddCollect
         showModal={showModal}
         handleModal={handleModalAdd}
