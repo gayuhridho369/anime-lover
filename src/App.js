@@ -5,16 +5,19 @@ import { DefaultTheme } from "./themes/PresetThemes";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Router from "./routes/Router";
+import { ContextProvider } from "./stores/Context";
 
 function App() {
   return (
     <Fragment>
-      <ThemeProvider theme={DefaultTheme}>
-        <GlobalStyles />
-        <Navbar />
-        <Router />
-        <Footer />
-      </ThemeProvider>
+      <ContextProvider>
+        <ThemeProvider theme={DefaultTheme}>
+          <GlobalStyles />
+          <Navbar />
+          <Router />
+          <Footer />
+        </ThemeProvider>
+      </ContextProvider>
     </Fragment>
   );
 }

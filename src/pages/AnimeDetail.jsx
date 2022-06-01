@@ -1,85 +1,97 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { useParams } from "react-router-dom";
 import styled from "@emotion/styled";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import Container from "../components/Container";
 import { AiFillStar } from "react-icons/ai";
-import ModalCollect from "../components/ModalCollect";
 import getAnimeDetail from "../graphql/GetAnimeDetail";
 import SkeletonAnimeDetail from "../components/skeletons/SkeletonAnimeDetail";
+import { Collections } from "../stores/Context";
+
+import AddCollect from "../components/modals/AddCollect";
+import RemoveCollect from "../components/modals/RemoveCollect";
 
 function AnimeDetail() {
-  const [showModal, setShowModal] = useState(false);
-  const [idAnimeCollect, setIdAnimeCollect] = useState(0);
-  const [animesCollected, setAnimesCollected] = useState([]);
+  const [showModalAdd, setShowModalAdd] = useState(false);
+  const [showModalRemove, setShowModalRemove] = useState(false);
+  const [idAddCollect, setIdAddCollect] = useState(0);
   const [isCollected, setIsCollected] = useState(false);
   const [collectionName, setCollectionName] = useState(" ");
+
+  const { collections, getLocalStorage, addCollect, removeCollect } =
+    useContext(Collections);
 
   const { id } = useParams();
   const { loading, error, data } = useQuery(getAnimeDetail, {
     variables: { id: id },
   });
 
-  const handleAnimesCollected = (animes) => {
-    setAnimesCollected(animes);
+  // const handleRemove = () => {
+  //   if (window.confirm("Remove from collection")) {
+  //     const localCollections = JSON.parse(localStorage.getItem("collections"));
+
+  //     const anime = localCollections.map((collection) => {
+  //       if (collection.anime.find((id) => id === data.Media.id)) {
+  //         const index = collection.anime.indexOf(data.Media.id);
+  //         if (index > -1) {
+  //           collection.anime.splice(index, 1);
+  //         }
+  //       }
+
+  //       return collection;
+  //     });
+
+  //     // setIsCollected(false);
+  //     localStorage.setItem("collections", JSON.stringify(anime));
+
+  //     let datas = [];
+  //     anime.forEach((collection) => {
+  //       collection.anime.forEach((id) => {
+  //         datas.push({
+  //           id: id,
+  //           name: collection.name,
+  //         });
+  //       });
+  //     });
+
+  //     setAnimesCollected(datas);
+  //   }
+  // };
+
+  const handleModalAdd = (id) => {
+    setShowModalAdd(!showModalAdd);
+    if (id) setIdAddCollect(id);
   };
 
-  const handleCollect = (id) => {
-    console.log(id);
-    setShowModal(!showModal);
-    setIdAnimeCollect(id);
+  const handleModalRemove = (id) => {
+    setShowModalRemove(!showModalRemove);
+    if (id) setIdAddCollect(id);
   };
 
-  const handleRemove = () => {
-    if (window.confirm("Remove from collection")) {
-      const localCollections = JSON.parse(localStorage.getItem("collections"));
-
-      const anime = localCollections.map((collection) => {
-        if (collection.anime.find((id) => id === data.Media.id)) {
-          const index = collection.anime.indexOf(data.Media.id);
-          if (index > -1) {
-            collection.anime.splice(index, 1);
-          }
-        }
-
-        return collection;
-      });
-
-      // setIsCollected(false);
-      localStorage.setItem("collections", JSON.stringify(anime));
-
-      let datas = [];
-      anime.forEach((collection) => {
-        collection.anime.forEach((id) => {
-          datas.push({
-            id: id,
-            name: collection.name,
-          });
-        });
-      });
-
-      setAnimesCollected(datas);
-    }
+  const handleAddCollect = (newCollect) => {
+    addCollect(newCollect);
   };
+
+  const handleRemoveCollect = (id) => {
+    removeCollect(id.idAnime);
+  };
+
+  useEffect(() => {
+    getLocalStorage();
+  }, []);
 
   useEffect(() => {
     setIsCollected(false);
     setCollectionName("");
-
-    animesCollected.forEach((anime) => {
-      if (anime.id === data?.Media?.id) {
-        setIsCollected(true);
-        setCollectionName(anime.name);
-      }
+    collections.forEach((collection) => {
+      collection.animesId.forEach((animeId) => {
+        if (animeId === data?.Media?.id) {
+          setIsCollected(true);
+          setCollectionName(collection.name);
+        }
+      });
     });
   });
-
-  // useEffect(() => {
-  //   const localCollections = JSON.parse(localStorage.getItem("collections"));
-  //   if (localCollections) {
-  //     setCollections(localCollections);
-  //   }
-  // }, []);
 
   if (loading)
     return (
@@ -91,11 +103,18 @@ function AnimeDetail() {
 
   return (
     <>
-      <ModalCollect
-        showModal={showModal}
-        handleCollect={handleCollect}
-        idAnime={idAnimeCollect}
-        animesCollected={handleAnimesCollected}
+      <AddCollect
+        showModal={showModalAdd}
+        handleModal={handleModalAdd}
+        collections={collections}
+        idAddCollect={idAddCollect}
+        handleAddCollect={handleAddCollect}
+      />
+      <RemoveCollect
+        showModal={showModalRemove}
+        handleModal={handleModalRemove}
+        idAddCollect={idAddCollect}
+        handleRemoveCollect={handleRemoveCollect}
       />
       <Container>
         <Detail>
@@ -110,12 +129,12 @@ function AnimeDetail() {
                 alt={data?.Media?.title.english}
               />
               {!isCollected ? (
-                <Collect onClick={() => handleCollect(data?.Media?.id)}>
-                  Add to Collection
+                <Collect onClick={() => handleModalAdd(data?.Media?.id)}>
+                  Add Collect
                 </Collect>
               ) : (
-                <Collected onClick={handleRemove}>
-                  Remove from Collection
+                <Collected onClick={() => handleModalRemove(data?.Media?.id)}>
+                  Remove Collect
                 </Collected>
               )}
               {isCollected && (
@@ -183,6 +202,7 @@ const CoverImage = styled.img`
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 3.5fr;
+  gap: 12px;
   @media only screen and (max-width: 768px) {
     grid-template-columns: 1fr;
   }

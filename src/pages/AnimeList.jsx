@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "@emotion/styled";
 import { useQuery } from "@apollo/client";
@@ -14,12 +14,18 @@ import {
 } from "../components/skeletons/SkeletonAnimeList";
 import Error from "../components/Error";
 import AddCollect from "../components/modals/AddCollect";
+import { Collections } from "../stores/Context";
+import RemoveCollect from "../components/modals/RemoveCollect";
 
 function AnimeList() {
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [showModalRemove, setShowModalRemove] = useState(false);
   const [idAddCollect, setIdAddCollect] = useState(0);
   const [animesCollected, setAnimesCollected] = useState([]);
+
+  const { collections, getLocalStorage, addCollect, removeCollect } =
+    useContext(Collections);
 
   const { pageNumber } = useParams();
   const navigate = useNavigate();
@@ -28,16 +34,38 @@ function AnimeList() {
     variables: { page: page, perPage: 10 },
   });
 
-  const handleAnimeDetail = (id) => {
+  const animeDetail = (id) => {
     navigate("/anime/" + id + "/detail");
   };
 
-  const handleAddCollect = (id) => {
+  const handleModalAdd = (id) => {
     setShowModal(!showModal);
-    setIdAddCollect(id);
+    if (id) setIdAddCollect(id);
   };
 
-  const handleAnimesCollected = (animes) => {
+  const handleModalRemove = (id) => {
+    setShowModalRemove(!showModalRemove);
+    if (id) setIdAddCollect(id);
+  };
+
+  const handleAddCollect = (newCollect) => {
+    addCollect(newCollect);
+  };
+
+  const handleRemoveCollect = (id) => {
+    removeCollect(id.idAnime);
+  };
+
+  const isAnimesCollected = () => {
+    let animes = [];
+    collections.forEach((collection) => {
+      collection.animesId.forEach((id) => {
+        animes.push({
+          id: id,
+          name: collection.name,
+        });
+      });
+    });
     setAnimesCollected(animes);
   };
 
@@ -47,8 +75,19 @@ function AnimeList() {
     } else {
       setPage(1);
     }
+  }, [pageNumber]);
+
+  useEffect(() => {
+    getLocalStorage();
+  }, []);
+
+  useEffect(() => {
+    isAnimesCollected();
+  }, [collections]);
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  });
+  }, [page]);
 
   if (loading)
     return (
@@ -79,9 +118,16 @@ function AnimeList() {
     <>
       <AddCollect
         showModal={showModal}
+        handleModal={handleModalAdd}
+        collections={collections}
         idAddCollect={idAddCollect}
         handleAddCollect={handleAddCollect}
-        animesCollected={handleAnimesCollected}
+      />
+      <RemoveCollect
+        showModal={showModalRemove}
+        handleModal={handleModalRemove}
+        idAddCollect={idAddCollect}
+        handleRemoveCollect={handleRemoveCollect}
       />
       <Container>
         <Flex>
@@ -92,9 +138,9 @@ function AnimeList() {
                   <Img
                     src={anime.coverImage.large}
                     alt={anime.title.english}
-                    onClick={() => handleAnimeDetail(anime.id)}
+                    onClick={() => animeDetail(anime.id)}
                   />
-                  <Title onClick={() => handleAnimeDetail(anime.id)}>
+                  <Title onClick={() => animeDetail(anime.id)}>
                     {anime.title.english} - {anime.title.native}
                   </Title>
                   <Rating>
@@ -107,13 +153,15 @@ function AnimeList() {
                       <div key={index}>
                         {animeCollected.id === anime.id && (
                           <Collected>
-                            <BsTagsFill />
+                            <BsTagsFill
+                              onClick={() => handleModalRemove(anime.id)}
+                            />
                           </Collected>
                         )}
                       </div>
                     );
                   })}
-                  <Collect onClick={() => handleAddCollect(anime.id)}>
+                  <Collect onClick={() => handleModalAdd(anime.id)}>
                     <MdSaveAlt />
                   </Collect>
                 </Card>
@@ -185,7 +233,7 @@ const Episodes = styled.p`
   align-items: center;
   justify-content: center;
   gap: 4px;
-  bottom: 10px;
+  bottom: 15px;
   right: 10px;
   font-size: 12px;
   font-weight: 600;
@@ -215,7 +263,7 @@ const Collect = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  bottom: 10px;
+  bottom: 15px;
   left: 10px;
   border-radius: 4px;
   padding: 2px 4px;
@@ -234,7 +282,6 @@ const Collected = styled(Collect)`
   color: ${({ theme }) => theme.color.light};
   border: 2px solid ${({ theme }) => theme.color.lightAlt};
   background-color: ${({ theme }) => theme.color.lightAlt};
-  cursor: auto;
   &:hover {
     color: ${({ theme }) => theme.color.light};
     border: 2px solid ${({ theme }) => theme.color.lightAlt};

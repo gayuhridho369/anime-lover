@@ -6,11 +6,11 @@ import { BrowserRouter } from "react-router-dom";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
-    <ProviderApollo>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ProviderApollo>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <ProviderApollo>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </ProviderApollo>
+  // </React.StrictMode>
 );

@@ -40,6 +40,7 @@ const BannerImage = styled.div`
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 3.5fr;
+  gap: 12px;
   @media only screen and (max-width: 768px) {
     grid-template-columns: 1fr;
   }

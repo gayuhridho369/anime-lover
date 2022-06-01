@@ -18,6 +18,9 @@ function Pagination(props) {
       <Button onClick={handlePrev} disabled={props.pageInfo.currentPage <= 1}>
         Prev
       </Button>
+      <Text>
+        Page: <Page>{props.pageInfo.currentPage}</Page>
+      </Text>
       <Button
         onClick={handleNext}
         disabled={
@@ -56,4 +59,12 @@ const Button = styled.div`
   &[disabled] {
     background-color: ${({ theme }) => theme.color.lightAlt};
   }
+`;
+
+const Text = styled.p`
+  color: ${({ theme }) => theme.color.darkAlt};
+`;
+
+const Page = styled.span`
+  font-weight: 600;
 `;

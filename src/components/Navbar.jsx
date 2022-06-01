@@ -2,13 +2,17 @@ import React from "react";
 import styled from "@emotion/styled";
 import Container from "./Container";
 import { ImSearch } from "react-icons/im";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Navbar() {
   const navigate = useNavigate();
 
   const handleToHome = () => {
     navigate("/");
+  };
+
+  const handleToCollection = () => {
+    navigate("/anime/collection");
   };
 
   return (
@@ -23,7 +27,7 @@ function Navbar() {
                 <ImSearch />
               </Icon>
             </Search>
-            <Collection>Collection</Collection>
+            <Collection onClick={handleToCollection}>Collection</Collection>
           </Div>
         </Nav>
       </Container>
