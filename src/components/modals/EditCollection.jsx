@@ -34,7 +34,7 @@ function EditCollection(props) {
     }
 
     props.collections.forEach((collection) => {
-      if (collection.name == newCollectionName) {
+      if (collection.name === newCollectionName) {
         setError({
           status: true,
           message: "New Collection Name already used!",
